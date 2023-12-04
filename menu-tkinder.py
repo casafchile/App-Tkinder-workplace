@@ -12,6 +12,10 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
+#MP3-MP4 Download
+from pytube import YouTube
+from moviepy.editor import VideoFileClip
+from pydub import AudioSegment
 
 def ventana():
     global ventana
@@ -28,6 +32,9 @@ def ventana():
 
     boton_word_pdf=Button(ventana, text="Word a PDF", width=20, command=word_pdf) #command es la funcion #el place es la posicion del boton
     boton_word_pdf.pack()
+
+    boton_download_MP3_MP4=Button(ventana, text="Descargar Videos MP3 o MP4", width=20, command=download_MP3_MP4)
+    boton_download_MP3_MP4.pack()
 
     boton_salir=Button(ventana, text="Salir", width=20, command=salida) #command es la funcion #el place es la posicion del boton
     boton_salir.pack()
@@ -148,6 +155,77 @@ def word_pdf():
         ventana.withdraw()
 
     word_pdf.mainloop()
+
+def download_MP3_MP4():
+    global download_MP3_MP4
+    download_MP3_MP4=Toplevel(ventana)                                      #Se usa el Toplevel y no el Tk porque da BUGS
+    download_MP3_MP4.geometry("400x380")
+    download_MP3_MP4.title("Descargar y Convertir YouTube")
+    etiqueta=Label(download_MP3_MP4,text="Descargar y Convertir YouTube", bg="#808080")
+    etiqueta.pack(fill=X)
+
+    def download_and_convert(link_text, output_path, file_type, output_label):
+        try:
+            # Obtener el enlace de YouTube desde el cuadro de texto
+            link = link_text.get("1.0", END).strip()
+
+            # Descargar video
+            yt = YouTube(link)
+            video = yt.streams.filter(file_extension='mp4').first()
+            video_path = os.path.join(output_path, f"{yt.title}.mp4")
+            video.download(output_path)
+
+            # Convertir a MP3 si es necesario
+            if file_type == 'mp3':
+                video_path = os.path.join(output_path, f"{yt.title}.mp4")
+                audio_path = os.path.join(output_path, f"{yt.title}.mp3")
+
+                clip = VideoFileClip(video_path)
+                clip.audio.write_audiofile(audio_path)
+                clip.close()
+
+                # Eliminar el archivo de video original
+                os.remove(video_path)
+
+                # Actualizar la etiqueta con la ruta del archivo descargado
+                output_label.config(text=f"Archivo descargado en: {os.path.abspath(audio_path)}")
+
+            else:
+                # Actualizar la etiqueta con la ruta del archivo descargado
+                output_label.config(text=f"Archivo descargado en: {os.path.abspath(video_path)}")
+
+        except Exception as e:
+            print(f"Error: {e}")
+            output_label.config(text="Error al descargar el archivo")
+
+    def get_download_path():
+        return filedialog.askdirectory()
+
+    def download_button_click(link_text, file_type_var, output_label):
+        output_path = get_download_path()
+        file_type = file_type_var.get()
+        download_and_convert(link_text, output_path, file_type, output_label)
+    
+    link_label = Label(download_MP3_MP4, text="Enlace de YouTube:")
+    link_label.pack()
+
+    link_text = Text(download_MP3_MP4, height=3, width=40)
+    link_text.pack()
+
+    file_type_var = StringVar(value='mp4')
+
+    file_type_label = Label(download_MP3_MP4, text="Seleccione el formato de archivo:")
+    file_type_label.pack()
+
+    file_type_menu = OptionMenu(download_MP3_MP4, file_type_var, 'mp4', 'mp3')
+    file_type_menu.pack()
+
+    output_label = Label(download_MP3_MP4, text="")
+    output_label.pack()
+
+    download_button = Button(download_MP3_MP4, text="Descargar y Convertir", command=lambda: download_button_click(link_text, file_type_var, output_label))
+    download_button.pack()
+
 
 def volver_ventana():
     ventana.iconify()
