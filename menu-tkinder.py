@@ -16,6 +16,10 @@ from reportlab.pdfbase.ttfonts import TTFont
 from pytube import YouTube
 from moviepy.editor import VideoFileClip
 from pydub import AudioSegment
+#
+from tkinter import Tk, Label, Entry, Button
+import qrcode
+from PIL import Image, ImageTk
 
 def ventana():
     global ventana
@@ -35,6 +39,9 @@ def ventana():
 
     boton_download_MP3_MP4=Button(ventana, text="Descargar Videos MP3 o MP4", width=20, command=download_MP3_MP4)
     boton_download_MP3_MP4.pack()
+
+    boton_qr=Button(ventana, text="QR", width=20, command=qr) #command es la funcion #el place es la posicion del boton
+    boton_qr.pack()
 
     boton_salir=Button(ventana, text="Salir", width=20, command=salida) #command es la funcion #el place es la posicion del boton
     boton_salir.pack()
@@ -226,7 +233,6 @@ def download_MP3_MP4():
     download_button = Button(download_MP3_MP4, text="Descargar y Convertir", command=lambda: download_button_click(link_text, file_type_var, output_label))
     download_button.pack()
 
-
 def volver_ventana():
     ventana.iconify()
     ventana.deiconify()
@@ -234,6 +240,59 @@ def volver_ventana():
     #destruir
     pdf_word.destroy()
     word_pdf.destroy()
-    
+
+# Etiqueta
+    label = Label(ventana, text="Ingrese el dato para generar el código QR:")
+    label.pack(pady=10)
+
+    # Entrada de texto
+    entry_dato = Entry(ventana)
+    entry_dato.pack(pady=10)
+
+    # Botón para generar código QR
+    boton_generar_qr = Button(ventana, text="Generar QR", command=generar_qr)
+    boton_generar_qr.pack(pady=10)
+
+    ventana.mainloop()
+
+def qr():
+    global qr, entry_dato
+    qr = Tk()
+    qr.geometry("400x130")  # ancho largo
+    qr.title("QR")
+
+    # Etiqueta
+    label = Label(qr, text="Ingrese un dato para generar el código QR:")
+    label.pack(pady=10)
+
+    # Entrada de texto
+    entry_dato = Entry(qr)
+    entry_dato.pack(pady=10)
+
+    # Botón para generar código QR
+    boton_generar_qr = Button(qr, text="Generar QR", command=generar_qr)
+    boton_generar_qr.pack(pady=10)
+
+    ventana.mainloop()
+
+def generar_qr():
+    global entry_dato
+    dato = entry_dato.get()  # Obtener el dato ingresado por el usuario
+
+    # Verificar si se ingresó un dato
+    if dato:
+        # Crear el código QR
+        qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_L, box_size=10, border=4)
+        qr.add_data(dato)
+        qr.make(fit=True)
+
+        # Crear una imagen del código QR
+        imagen_qr = qr.make_image(fill_color="black", back_color="white")
+
+        # Mostrar la imagen en la ventana
+        imagen_qr.show()
+
+    else:
+        print("Por favor, ingrese un dato para generar el código QR.")
 
 ventana()                                                           #cierre app
